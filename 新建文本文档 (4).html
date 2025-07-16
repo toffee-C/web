@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>香水分析图表</title>
+    <!-- 使用ECharts官方CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        #chart-container {
+            width: 100%;
+            height: 600px;
+            min-width: 300px;
+        }
+    </style>
+</head>
+<body>
+    <div id="chart-container"></div>
+
+    <script>
+        // 初始化图表
+        const chartDom = document.getElementById('chart-container');
+        const myChart = echarts.init(chartDom);
+        
+        // 示例图表配置（香水分析数据）
+        const option = {
+            title: {
+                text: '香水成分分析',
+                subtext: '主要香料成分占比',
+                left: 'center'
+            },
+            tooltip: {
+                trigger: 'item',
+                formatter: '{a} <br/>{b}: {c} ({d}%)'
+            },
+            legend: {
+                orient: 'horizontal',
+                bottom: 10,
+                data: ['花香', '果香', '木香', '麝香', '琥珀']
+            },
+            series: [{
+                name: '香料成分',
+                type: 'pie',
+                radius: ['40%', '70%'],
+                avoidLabelOverlap: false,
+                itemStyle: {
+                    borderRadius: 10,
+                    borderColor: '#fff',
+                    borderWidth: 2
+                },
+                label: {
+                    show: true,
+                    position: 'outside'
+                },
+                emphasis: {
+                    label: {
+                        show: true,
+                        fontSize: '18',
+                        fontWeight: 'bold'
+                    }
+                },
+                labelLine: {
+                    show: true
+                },
+                data: [
+                    { value: 35, name: '花香' },
+                    { value: 25, name: '果香' },
+                    { value: 20, name: '木香' },
+                    { value: 15, name: '麝香' },
+                    { value: 5, name: '琥珀' }
+                ]
+            }]
+        };
+        
+        // 应用配置项
+        myChart.setOption(option);
+        
+        // 响应窗口大小变化
+        window.addEventListener('resize', function() {
+            myChart.resize();
+        });
+    </script>
+</body>
+</html>
