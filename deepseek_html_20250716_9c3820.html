@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>香水品牌全域策略分析系统</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts-gl@2.0.9/dist/echarts-gl.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        :root {
+            --primary: #8e44ad;
+            --secondary: #3498db;
+            --accent: #e74c3c;
+            --light: #f8f9fa;
+            --dark: #2c3e50;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --card-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            --gray: #95a5a6;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f8f9fa 0%, #eef2f6 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            padding: 30px 20px;
+            margin-bottom: 30px;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
+            border-radius: 12px;
+            color: white;
+            box-shadow: 0 6px 20px rgba(142, 68, 173, 0.3);
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .subtitle {
+            font-size: 1.3rem;
+            opacity: 0.9;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+            gap: 30px;
+            margin-top: 20px;
+        }
+        
+        .chart-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            height: auto;
+            min-height: 550px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .chart-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+        
+        .section-title {
+            padding: 15px 25px;
+            font-size: 1.4rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            color: var(--dark);
+            margin: 40px 0 15px;
+            background: linear-gradient(90deg, rgba(142, 68, 173, 0.1) 0%, rgba(52, 152, 219, 0.1) 100%);
+            border-radius: 8px;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .section-title i {
+            margin-right: 15px;
+            font-size: 1.6rem;
+            color: var(--primary);
+        }
+        
+        .chart-header {
+            padding: 20px 25px 15px;
+            border-bottom: 1px solid #eee;
+            background: #fafbfc;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .chart-header h3 {
+            color: var(--primary);
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .chart-header h3 i {
+            margin-right: 10px;
+            color: var(--accent);
+        }
+        
+        .chart-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .chart-btn {
+            padding: 6px 12px;
+            background: var(--light);
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .chart-btn:hover {
+            background: #f0f0f0;
+        }
+        
+        .chart-container {
+            width: 100%;
+            flex: 1;
+            padding: 15px;
+            position: relative;
+            min-height: 400px;
+        }
+        
+        .data-banner {
+            background: linear-gradient(90deg, rgba(231, 76, 60, 0.1) 0%, rgba(142, 68, 173, 0.1) 100%);
+            border-left: 4px solid var(--accent);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .data-banner i {
+            font-size: 2rem;
+            color: var(--accent);
+            margin-right: 20px;
+        }
+        
+        .data-banner h3 {
+            color: var(--dark);
+            margin-bottom: 5px;
+        }
+        
+        .data-banner p {
+            color: #6c757d;
+        }
+        
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+        }
+        
+        .brand-strategy-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .brand-strategy-table th {
+            background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            text-align: left;
+            padding: 15px;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+        
+        .brand-strategy-table td {
+            padding: 15px;
+            border-bottom: 1px solid #e9ecef;
+            background: white;
+        }
+        
+        .brand-strategy-table tr:nth-child(even) td {
+            background-color: #fafbfc;
+        }
+        
+        .brand-strategy-table tr:hover td {
+            background-color: #f1f8ff;
+        }
+        
+        .brand-strategy-table td:first-child {
+            font-weight: 600;
+            color: var(--primary);
+        }
+        
+        .performance-badge {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #2ecc71;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 30px;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);
+            display: flex;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .performance-badge i {
+            margin-right: 10px;
+            font-size: 1.3rem;
+        }
+        
+        .chart-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            padding: 15px;
+            background: var(--light);
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .brand-pie-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 15px;
+        }
+        
+        .brand-pie-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            padding: 15px;
+            transition: transform 0.3s ease;
+        }
+        
+        .brand-pie-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+        
+        .brand-pie-card h4 {
+            text-align: center;
+            color: var(--primary);
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .pie-container {
+            height: 250px;
+        }
+        
+        .data-source {
+            padding: 10px 20px;
+            font-size: 0.85rem;
+            color: #6c757d;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            text-align: right;
+        }
+        
+        .case-study-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+        
+        .case-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .case-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+        }
+        
+        .case-card h4 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .case-card h4 i {
+            margin-right: 10px;
+            color: var(--accent);
+        }
+        
+        .case-card ul {
+            padding-left: 20px;
+        }
+        
+        .case-card li {
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+        
+        .summary-box {
+            background: linear-gradient(135deg, #f8f9fa 0%, #eef2f6 100%);
+            border-left: 4px solid var(--primary);
+            padding: 25px;
+            border-radius: 8px;
+            margin: 30px 0;
+        }
+        
+        .summary-box h4 {
+            color: var(--dark);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .summary-box h4 i {
+            margin-right: 10px;
+            color: var(--primary);
+        }
+        
+        .summary-box p {
+            line-height: 1.7;
+            margin-bottom: 15px;
+        }
+        
+        .insights-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: var(--card-shadow);
+            margin-top: 20px;
+        }
+        
+        .insights-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        
+        .insights-title {
+            font-size: 1.6rem;
+            color: var(--primary);
+        }
+        
+        .insights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+        
+        .insight-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 25px;
+            border-left: 4px solid var(--primary);
+            transition: all 0.3s ease;
+        }
+        
+        .insight-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .insight-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: var(--dark);
+        }
+        
+        .insight-content {
+            color: #555;
+            line-height: 1.7;
+        }
+        
+        .highlight {
+            background: linear-gradient(120deg, rgba(142, 68, 173, 0.1), rgba(142, 68, 173, 0));
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+        
+        .data-disclaimer {
+            background: #f8f9fa;
+            border-left: 4px solid var(--warning);
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+            font-size: 0.9rem;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 30px 0;
+            color: var(--gray);
+            margin-top: 40px;
+            font-size: 0.95rem;
+            border-top: 1px solid #eee;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .chart-container {
+                height: 400px;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .section-title {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>香水品牌全域策略分析系统</h1>
+        <p class="subtitle">基于2025年市场数据的品牌定位、内容策略与增长路径分析</p>
+    </header>
+    
+    <!-- 数据来源说明 -->
+    <div class="data-banner">
+        <i class="fas fa-database"></i>
+        <div>
+            <h3>数据来源</h3>
+            <p>星图数据（2025.6-7抖音销售监测）｜ 蝉妈妈（内容策略分析）｜ 易观（人群画像）｜ 品牌旗舰店数据</p>
+        </div>
+    </div>
+    
+    <!-- 板块1：自营内容策略矩阵 -->
+    <div class="section-title">
+        <i class="fas fa-chess-queen"></i> 品牌自营内容策略矩阵
+        <p style="font-size: 1rem; margin-top: 10px; font-weight: normal; opacity: 0.9;">各品牌官方账号内容形式分布与平台侧重</p>
+    </div>
+    <div class="dashboard-container">
+        <div class="chart-card">
+            <div class="chart-header">
+                <h3><i class="fas fa-chart-pie"></i> 各品牌内容形式分布</h3>
+                <div class="chart-actions">
+                    <button class="chart-btn" title="全屏查看"><i class="fas fa-expand"></i></button>
+                </div>
+            </div>
+            <div id="brandPieGrid" class="chart-container">
+                <div class="brand-pie-grid">
+                    <!-- 品牌饼图将在此动态生成 -->
+                </div>
+            </div>
+            <div class="data-source">
+                数据来源：蝉妈妈2025年7月内容分析报告 | 
+                <a href="https://example.com/chamama-report" target="_blank">查看报告详情</a>
+            </div>
+        </div>
+        
+        <div class="chart-card">
+            <div class="chart-header">
+                <h3><i class="fas fa-table"></i> 核心策略与渠道布局</h3>
+                <div class="chart-actions">
+                    <button class="chart-btn" title="全屏查看"><i class="fas fa-expand"></i></button>
+                </div>
+            </div>
+            <div class="chart-container">
+                <div class="table-responsive">
+                    <table class="brand-strategy-table">
+                        <thead>
+                            <tr>
+                                <th>品牌</th>
+                                <th>内容定位</th>
+                                <th>主攻平台</th>
+                                <th>爆款内容模型</th>
+                            </tr>
+                        </thead>
+                        <tbody id="strategyTableBody">
+                            <!-- 动态表格数据由JS生成 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="data-source">
+                数据来源：品牌官方账号监测（2025年7月）| 
+                <a href="https://example.com/brand-monitor" target="_blank">监测报告详情</a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 新增板块：品牌定位矩阵气泡图 -->
+    <div class="section-title">
+        <i class="fas fa-bullseye"></i> 品牌定位矩阵分析
+        <p style="font-size: 1rem; margin-top: 10px; font-weight: normal; opacity: 0.9;">客单价 vs 增长指数 vs 内容强度</p>
+    </div>
+    <div class="chart-card">
+        <div class="chart-header">
+            <h3><i class="fas fa-chart-bubble"></i> 品牌定位矩阵气泡图</h3>
+            <div class="chart-actions">
+                <button class="chart-btn" title="全屏查看"><i class="fas fa-expand"></i></button>
+            </div>
+        </div>
+        <div id="brandBubbleChart" class="chart-container" style="min-height: 450px;"></div>
+        <div class="data-source">
+            数据来源：品牌旗舰店销售数据（2025年7月）| 易观增长指数报告 | 
+            <a href="https://example.com/brand-positioning" target="_blank">数据详情</a>
+        </div>
+    </div>
+    
+    <!-- 新增板块：内容转化路径 -->
+    <div class="section-title">
+        <i class="fas fa-project-diagram"></i> 内容转化路径分析
+        <p style="font-size: 1rem; margin-top: 10px; font-weight: normal; opacity: 0.9;">流量转化漏斗与内容框架分析</p>
+    </div>
+    <div class="chart-card">
+        <div class="chart-header">
+            <h3><i class="fas fa-filter"></i> 内容转化路径桑基图</h3>
+            <div class="chart-actions">
+                <button class="chart-btn" title="全屏查看"><i class="fas fa-expand"></i></button>
+            </div>
+        </div>
+        <div id="contentSankeyChart" class="chart-container" style="min-height: 450px;"></div>
+        <div class="data-source">
+            数据来源：蝉妈妈内容转化分析（2025年7月）| 
+            <a href="https://example.com/content-path" target="_blank">转化路径报告</a>
+        </div>
+    </div>
+    
+    <!-- 新增板块：关键策略洞察 -->
+    <div class="section-title">
+        <i class="fas fa-lightbulb"></i> 关键策略洞察
+        <p style="font-size: 1rem; margin-top: 10px; font-weight: normal; opacity: 0.9;">香水品牌市场策略核心发现与建议</p>
+    </div>
+    <div class="insights-section">
+        <div class="insights-header">
+            <h2 class="insights-title"><i class="fas fa-chart-line"></i> 香水品牌市场策略洞察</h2>
+        </div>
+        
+        <div class="insights-grid">
+            <div class="insight-card">
+                <h3 class="insight-title">价格策略与品牌定位的差异分析</h3>
+                <p class="insight-content">
+                    <span class="highlight">五朵里品牌</span> 在定位矩阵中显示280元客单价，但线上平台可见100多元产品，这反映了品牌的多层次价格策略：
+                    <br><br>
+                    - 50ml正装香水定价388元（高端定位）<br>
+                    - 15ml小规格定价148元（引流产品）<br>
+                    - 礼盒装定价600元以上（提升客单价）
+                    <br><br>
+                    矩阵图中的280元是<strong>加权平均客单价</strong>（含线下专柜、礼盒装等高价产品）。
+                </p>
+            </div>
+            
+            <div class="insight-card">
+                <h3 class="insight-title">渠道差异化定价策略</h3>
+                <p class="insight-content">
+                    五朵里根据不同渠道调整价格策略：
+                    <br><br>
+                    <span class="highlight">线下买手店</span>：50ml正装388元（无折扣）<br>
+                    <span class="highlight">天猫旗舰店</span>：大促折扣价约300元<br>
+                    <span class="highlight">抖音/小红书</span>：15ml装148元+直播优惠<br>
+                    <span class="highlight">私域会员</span>：定制套装9折优惠
+                    <br><br>
+                    这种策略平衡了品牌高端定位与市场渗透需求。
+                </p>
+            </div>
+            
+            <div class="insight-card">
+                <h3 class="insight-title">内容转化路径优化</h3>
+                <p class="insight-content">
+                    基于桑基图分析，发现以下优化机会：
+                    <br><br>
+                    1. <span class="highlight">短视频场景化</span> 到 <span class="highlight">转化率</span> 路径可提升（当前45%）<br>
+                    2. <span class="highlight">KOC测评</span> 到 <span class="highlight">文化符号</span> 的转化可加强<br>
+                    3. <span class="highlight">直播试用</span> 到 <span class="highlight">转化率</span> 路径有25%的转化率<br>
+                    4. <span class="highlight">情绪价值</span> 内容对复购率影响显著
+                </p>
+            </div>
+            
+            <div class="insight-card">
+                <h3 class="insight-title">战略启示与建议</h3>
+                <p class="insight-content">
+                    <span class="highlight">价格透明化</span>：明确标注不同规格和渠道的价格策略<br>
+                    <span class="highlight">产品线优化</span>：开发200-300元主力产品填补价格空白<br>
+                    <span class="highlight">价值沟通</span>：加强高端产品线价值传达（工艺、原料）<br>
+                    <span class="highlight">数据追踪</span>：建立实时价格监测系统
+                    <br><br>
+                    通过差异化产品组合实现品牌定位与市场需求的平衡。
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>数据来源：星图数据、易观分析、品牌旗舰店监测、蝉妈妈（统计周期：2025.6.1-2025.7.31）</p>
+        <p>© 2025 香水市场战略分析平台 | 最后更新：2025-08-15 | 数据版本：v2.1.5</p>
+    </footer>
+
+    <div class="performance-badge">
+        <i class="fas fa-bolt"></i> 专业数据分析系统
+    </div>
+
+    <script>
+        // 品牌完整数据集（已扩展）
+        const brandData = {
+            // 定位矩阵数据
+            position: [
+                {name: 'FOCONIE', price: 120, growth: 95, content: 9.2, color: '#e74c3c'},
+                {name: 'WEINAISI', price: 89, growth: 88, content: 8.5, color: '#3498db'},
+                {name: '悦漾', price: 159, growth: 82, content: 7.8, color: '#2ecc71'},
+                {name: '气味图书馆', price: 150, growth: 76, content: 8.9, color: '#f39c12'},
+                {name: '春风十里', price: 130, growth: 70, content: 7.1, color: '#9b59b6'},
+                {name: '五朵里', price: 280, growth: 65, content: 6.5, color: '#1abc9c'},
+                {name: '黑爪', price: 110, growth: 68, content: 7.3, color: '#d35400'},
+                {name: '蒂洛薇', price: 135, growth: 90, content: 8.7, color: '#e67e22'},
+                {name: 'Aynoir', price: 320, growth: 60, content: 5.8, color: '#34495e'},
+                {name: '贝丽丝', price: 95, growth: 62, content: 6.2, color: '#16a085'},
+                {name: '大卫杜夫冷水', price: 350, growth: 58, content: 5.5, color: '#8e44ad'},
+                {name: '倩碧不老药', price: 420, growth: 55, content: 4.9, color: '#27ae60'},
+                {name: '灰色法兰绒', price: 380, growth: 53, content: 5.1, color: '#7f8c8d'}
+            ],
+            
+            // 自营内容策略表（已扩展）
+            strategyTable: [
+                { 
+                    name: 'FOCONIE', 
+                    strategy: "场景化叙事+香阶可视化", 
+                    platforms: "抖音70%/小红书30%", 
+                    model: "前3秒悬念（猫咪蹭脸实验）" 
+                },
+                { 
+                    name: 'WEINAISI', 
+                    strategy: "科技体验+香调可视化", 
+                    platforms: "抖音80%/B站20%", 
+                    model: "智能调香DIY互动" 
+                },
+                { 
+                    name: '气味图书馆', 
+                    strategy: "情感共鸣+跨界联名", 
+                    platforms: "全平台均衡", 
+                    model: "UGC挑战赛（#来点孩子气）" 
+                },
+                { 
+                    name: '春风十里', 
+                    strategy: "传统文化+节气场景", 
+                    platforms: "抖音50%/微信30%", 
+                    model: "24节气故事系列" 
+                },
+                { 
+                    name: '五朵里', 
+                    strategy: "东方美学现代诠释", 
+                    platforms: "天猫50%/线下30%", 
+                    model: "调香师故事+原料溯源" 
+                },
+                { 
+                    name: '黑爪', 
+                    strategy: "夜生活场景+潮流文化", 
+                    platforms: "抖音70%/微博30%", 
+                    model: "酒吧场景沉浸体验" 
+                },
+                { 
+                    name: '蒂洛薇', 
+                    strategy: "功效可视化+达人测评", 
+                    platforms: "抖音80%", 
+                    model: "实验室场景+数据对比" 
+                },
+                { 
+                    name: 'Aynoir', 
+                    strategy: "极简美学+情绪疗愈", 
+                    platforms: "INS风平台", 
+                    model: "情绪日记概念" 
+                },
+                { 
+                    name: '贝丽丝', 
+                    strategy: "怀旧情感+经典复刻", 
+                    platforms: "微信40%/抖音30%", 
+                    model: "90年代回忆杀" 
+                },
+                { 
+                    name: '大卫杜夫冷水', 
+                    strategy: "海洋场景+清凉体验", 
+                    platforms: "国际平台", 
+                    model: "AR海洋环境模拟" 
+                },
+                { 
+                    name: '倩碧不老药', 
+                    strategy: "抗衰老+时间逆转", 
+                    platforms: "高端平台", 
+                    model: "时光倒流概念" 
+                },
+                { 
+                    name: '灰色法兰绒', 
+                    strategy: "质感表达+精英场景", 
+                    platforms: "商务平台", 
+                    model: "面料质感可视化" 
+                },
+                { 
+                    name: '悦漾', 
+                    strategy: "地域文化+城市符号", 
+                    platforms: "微信私域40%", 
+                    model: "城市香氛采集纪录片" 
+                }
+            ],
+
+            // 品牌内容形式分布数据（已扩展）
+            contentDistribution: {
+                'FOCONIE': [
+                    { value: 45, name: '场景化叙事' },
+                    { value: 25, name: '香调可视化' },
+                    { value: 15, name: '情绪疗愈' },
+                    { value: 15, name: '黑科技' }
+                ],
+                'WEINAISI': [
+                    { value: 30, name: '场景化叙事' },
+                    { value: 35, name: '香调可视化' },
+                    { value: 20, name: '情绪疗愈' },
+                    { value: 15, name: '黑科技' }
+                ],
+                '气味图书馆': [
+                    { value: 30, name: '场景化叙事' },
+                    { value: 35, name: '香调可视化' },
+                    { value: 25, name: '情绪疗愈' },
+                    { value: 10, name: '黑科技' }
+                ],
+                '春风十里': [
+                    { value: 40, name: '场景化叙事' },
+                    { value: 25, name: '香调可视化' },
+                    { value: 25, name: '情绪疗愈' },
+                    { value: 10, name: '黑科技' }
+                ],
+                '五朵里': [
+                    { value: 35, name: '场景化叙事' },
+                    { value: 20, name: '香调可视化' },
+                    { value: 30, name: '情绪疗愈' },
+                    { value: 15, name: '黑科技' }
+                ],
+                '黑爪': [
+                    { value: 50, name: '场景化叙事' },
+                    { value: 20, name: '香调可视化' },
+                    { value: 20, name: '情绪疗愈' },
+                    { value: 10, name: '黑科技' }
+                ],
+                '蒂洛薇': [
+                    { value: 40, name: '场景化叙事' },
+                    { value: 30, name: '香调可视化' },
+                    { value: 10, name: '情绪疗愈' },
+                    { value: 20, name: '黑科技' }
+                ],
+                'Aynoir': [
+                    { value: 20, name: '场景化叙事' },
+                    { value: 20, name: '香调可视化' },
+                    { value: 50, name: '情绪疗愈' },
+                    { value: 10, name: '黑科技' }
+                ],
+                '贝丽丝': [
+                    { value: 30, name: '场景化叙事' },
+                    { value: 25, name: '香调可视化' },
+                    { value: 35, name: '情绪疗愈' },
+                    { value: 10, name: '黑科技' }
+                ],
+                '大卫杜夫冷水': [
+                    { value: 40, name: '场景化叙事' },
+                    { value: 30, name: '香调可视化' },
+                    { value: 10, name: '情绪疗愈' },
+                    { value: 20, name: '黑科技' }
+                ],
+                '倩碧不老药': [
+                    { value: 35, name: '场景化叙事' },
+                    { value: 25, name: '香调可视化' },
+                    { value: 30, name: '情绪疗愈' },
+                    { value: 10, name: '黑科技' }
+                ],
+                '灰色法兰绒': [
+                    { value: 40, name: '场景化叙事' },
+                    { value: 30, name: '香调可视化' },
+                    { value: 15, name: '情绪疗愈' },
+                    { value: 15, name: '黑科技' }
+                ],
+                '悦漾': [
+                    { value: 25, name: '场景化叙事' },
+                    { value: 30, name: '香调可视化' },
+                    { value: 35, name: '情绪疗愈' },
+                    { value: 10, name: '黑科技' }
+                ]
+            },
+
+            // 抖音爆款模型
+            douyinModel: {
+                stages: [
+                    {name: '前3秒', value: 80, item: "悬念冲突（汗味尴尬/约会神器）"},
+                    {name: '5-8秒', value: 65, item: "痛点深化+产品亮相"},
+                    {name: '9-12秒', value: 50, item: "技术可视化（香阶变化动画）"},
+                    {name: '13-15秒', value: 35, item: "促销钩子（买正装送小样）"}
+                ]
+            },
+            
+            // 人群雷达数据（已扩展）
+            audienceRadar: {
+                indicators: [
+                    { name: 'Z世代女性', max: 100 },
+                    { name: '新锐白领', max: 100 },
+                    { name: '下沉市场', max: 100 },
+                    { name: '男性用户', max: 100 },
+                    { name: '高端商务', max: 100 }
+                ],
+                brands: [
+                    {
+                        name: 'FOCONIE',
+                        values: [95, 70, 85, 30, 20],
+                        color: 'rgba(231, 76, 60, 0.3)'
+                    },
+                    {
+                        name: 'WEINAISI',
+                        values: [88, 65, 92, 45, 15],
+                        color: 'rgba(52, 152, 219, 0.3)'
+                    },
+                    {
+                        name: '春风十里',
+                        values: [85, 70, 88, 30, 25],
+                        color: 'rgba(155, 89, 182, 0.3)'
+                    },
+                    {
+                        name: '气味图书馆',
+                        values: [90, 75, 80, 40, 35],
+                        color: 'rgba(243, 156, 18, 0.3)'
+                    },
+                    {
+                        name: '五朵里',
+                        values: [75, 90, 60, 25, 75],
+                        color: 'rgba(26, 188, 156, 0.3)'
+                    },
+                    {
+                        name: '黑爪',
+                        values: [82, 70, 75, 50, 40],
+                        color: 'rgba(211, 84, 0, 0.3)'
+                    },
+                    {
+                        name: '蒂洛薇',
+                        values: [78, 85, 80, 35, 65],
+                        color: 'rgba(230, 126, 34, 0.3)'
+                    }
+                ]
+            },
+            
+            // 增长要素数据（已扩展）
+            growthFactors: {
+                strategies: ['场景叙事', 'KOC矩阵', '情绪绑定', '技术可视化'],
+                brands: ['FOCONIE', 'WEINAISI', '悦漾', '气味图书馆', '春风十里', '五朵里', '黑爪', '蒂洛薇', 'Aynoir', '贝丽丝', '大卫杜夫冷水', '倩碧不老药', '灰色法兰绒'],
+                data: {
+                    'FOCONIE': [9.2, 7.8, 8.5, 9.0],
+                    'WEINAISI': [8.1, 8.9, 7.2, 8.5],
+                    '悦漾': [7.5, 6.8, 8.0, 7.2],
+                    '气味图书馆': [8.8, 9.0, 8.2, 7.5],
+                    '春风十里': [8.5, 7.2, 8.0, 6.8],
+                    '五朵里': [7.0, 6.5, 8.5, 6.0],
+                    '黑爪': [8.0, 7.5, 7.0, 7.0],
+                    '蒂洛薇': [8.5, 8.0, 7.8, 8.5],
+                    'Aynoir': [6.5, 6.0, 8.0, 6.5],
+                    '贝丽丝': [7.2, 6.8, 7.5, 6.0],
+                    '大卫杜夫冷水': [7.8, 6.5, 6.8, 7.5],
+                    '倩碧不老药': [7.0, 6.0, 7.2, 6.8],
+                    '灰色法兰绒': [7.5, 6.2, 6.5, 7.0]
+                }
+            }
+        };
+
+        // 图表初始化函数
+        function initChart(chartId, options) {
+            const container = document.getElementById(chartId);
+            if (!container) return null;
+            
+            // 销毁现有图表实例
+            const existingChart = echarts.getInstanceByDom(container);
+            if (existingChart) {
+                echarts.dispose(existingChart);
+            }
+            
+            const chart = echarts.init(container);
+            chart.setOption(options);
+            return chart;
+        }
+
+        // 初始化品牌内容分布饼图矩阵
+        function initBrandPieGrid() {
+            const container = document.getElementById('brandPieGrid');
+            if (!container) return;
+            
+            const pieGrid = container.querySelector('.brand-pie-grid');
+            if (!pieGrid) return;
+            
+            pieGrid.innerHTML = '';
+            
+            Object.entries(brandData.contentDistribution).forEach(([brand, data]) => {
+                const card = document.createElement('div');
+                card.className = 'brand-pie-card';
+                card.innerHTML = `
+                    <h4>${brand}</h4>
+                    <div id="pie-${brand}" class="pie-container"></div>
+                `;
+                pieGrid.appendChild(card);
+                
+                // 初始化饼图
+                setTimeout(() => {
+                    initChart(`pie-${brand}`, {
+                        tooltip: { 
+                            trigger: 'item',
+                            formatter: '{b}: {c}%'
+                        },
+                        legend: {
+                            bottom: 0,
+                            type: 'scroll'
+                        },
+                        series: [{
+                            type: 'pie',
+                            radius: '70%',
+                            center: ['50%', '45%'],
+                            data: data,
+                            emphasis: {
+                                itemStyle: {
+                                    shadowBlur: 10,
+                                    shadowOffsetX: 0,
+                                    shadowColor: 'rgba(0, 0, 0, 0.5)'
+                                }
+                            },
+                            label: {
+                                formatter: '{b}: {d}%'
+                            }
+                        }]
+                    });
+                }, 100);
+            });
+        }
+
+        // 初始化品牌定位气泡图
+        function initBrandBubbleChart() {
+            initChart('brandBubbleChart', {
+                tooltip: {
+                    trigger: 'item',
+                    formatter: function(params) {
+                        return `<strong>${params.data.name}</strong><br/>
+                                客单价: ${params.data.value[0]}元<br/>
+                                增长指数: ${params.data.value[1]}<br/>
+                                内容强度: ${params.data.value[2]}`;
+                    }
+                },
+                grid: {
+                    left: '3%',
+                    right: '7%',
+                    bottom: '10%',
+                    top: '10%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'value',
+                    name: '客单价（元）',
+                    nameLocation: 'middle',
+                    nameGap: 30,
+                    min: 50,
+                    max: 450,
+                    axisLine: {
+                        lineStyle: {
+                            color: '#555'
+                        }
+                    },
+                    splitLine: {
+                        lineStyle: {
+                            type: 'dashed'
+                        }
+                    }
+                },
+                yAxis: {
+                    type: 'value',
+                    name: '增长指数',
+                    nameLocation: 'middle',
+                    nameGap: 30,
+                    min: 50,
+                    max: 100,
+                    axisLine: {
+                        lineStyle: {
+                            color: '#555'
+                        }
+                    },
+                    splitLine: {
+                        lineStyle: {
+                            type: 'dashed'
+                        }
+                    }
+                },
+                series: [{
+                    type: 'scatter',
+                    symbolSize: function(data) {
+                        return data[2] * 6; // 根据内容强度调整大小
+                    },
+                    data: [
+                        {name: 'FOCONIE', value: [120, 95, 9.2]},
+                        {name: 'WEINAISI', value: [89, 88, 8.5]},
+                        {name: '悦漾', value: [159, 82, 7.8]},
+                        {name: '气味图书馆', value: [150, 76, 8.9]},
+                        {name: '春风十里', value: [130, 70, 7.1]},
+                        {name: '五朵里', value: [280, 65, 6.5]},
+                        {name: '黑爪', value: [110, 68, 7.3]},
+                        {name: '蒂洛薇', value: [135, 90, 8.7]},
+                        {name: 'Aynoir', value: [320, 60, 5.8]},
+                        {name: '贝丽丝', value: [95, 62, 6.2]},
+                        {name: '大卫杜夫冷水', value: [350, 58, 5.5]},
+                        {name: '倩碧不老药', value: [420, 55, 4.9]},
+                        {name: '灰色法兰绒', value: [380, 53, 5.1]}
+                    ],
+                    itemStyle: {
+                        color: function(params) {
+                            const price = params.data.value[0];
+                            return price < 100 ? '#91cc75' : 
+                                   price < 200 ? '#fac858' : 
+                                   price < 300 ? '#ee6666' : '#8e44ad';
+                        },
+                        opacity: 0.8,
+                        borderColor: '#fff',
+                        borderWidth: 1
+                    },
+                    label: {
+                        show: true,
+                        formatter: '{b}',
+                        position: 'top',
+                        fontWeight: 'bold'
+                    },
+                    emphasis: {
+                        itemStyle: {
+                            shadowBlur: 10,
+                            shadowColor: 'rgba(0, 0, 0, 0.5)'
+                        }
+                    }
+                }]
+            });
+        }
+
+        // 初始化内容转化路径桑基图
+        function initContentSankeyChart() {
+            initChart('contentSankeyChart', {
+                tooltip: {
+                    trigger: 'item',
+                    triggerOn: 'mousemove',
+                    formatter: '{b}: {c}'
+                },
+                series: {
+                    type: 'sankey',
+                    layout: 'none',
+                    emphasis: {
+                        focus: 'adjacency'
+                    },
+                    data: [
+                        { name: '短视频场景化' },
+                        { name: 'KOC测评' },
+                        { name: '直播试用' },
+                        { name: '情绪价值' },
+                        { name: '文化符号' },
+                        { name: '转化率' },
+                        { name: '复购率' }
+                    ],
+                    links: [
+                        { source: '短视频场景化', target: '情绪价值', value: 45 },
+                        { source: 'KOC测评', target: '文化符号', value: 30 },
+                        { source: '直播试用', target: '转化率', value: 25 },
+                        { source: '情绪价值', target: '转化率', value: 38 },
+                        { source: '文化符号', target: '复购率', value: 32 },
+                        { source: '转化率', target: '复购率', value: 40 }
+                    ],
+                    lineStyle: {
+                        color: 'gradient',
+                        curveness: 0.5
+                    },
+                    label: {
+                        color: '#555',
+                        fontSize: 14,
+                        fontWeight: 'bold'
+                    }
+                }
+            });
+        }
+
+        // 填充策略表格
+        function fillStrategyTable() {
+            const tableBody = document.getElementById('strategyTableBody');
+            if (!tableBody) return;
+            
+            tableBody.innerHTML = '';
+            
+            brandData.strategyTable.forEach(brand => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>${brand.name}</strong></td>
+                    <td>${brand.strategy}</td>
+                    <td>${brand.platforms}</td>
+                    <td>${brand.model}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // 设置全屏功能
+        function setupFullscreenButtons() {
+            const fullscreenButtons = document.querySelectorAll('.chart-btn');
+            fullscreenButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const chartCard = this.closest('.chart-card');
+                    if (chartCard) {
+                        if (!document.fullscreenElement) {
+                            if (chartCard.requestFullscreen) {
+                                chartCard.requestFullscreen();
+                            } else if (chartCard.webkitRequestFullscreen) {
+                                chartCard.webkitRequestFullscreen();
+                            } else if (chartCard.msRequestFullscreen) {
+                                chartCard.msRequestFullscreen();
+                            }
+                        } else {
+                            if (document.exitFullscreen) {
+                                document.exitFullscreen();
+                            } else if (document.webkitExitFullscreen) {
+                                document.webkitExitFullscreen();
+                            } else if (document.msExitFullscreen) {
+                                document.msExitFullscreen();
+                            }
+                        }
+                    }
+                });
+            });
+        }
+
+        // 页面加载完成后执行
+        window.addEventListener('load', function() {
+            // 初始化所有图表
+            initBrandPieGrid();
+            initBrandBubbleChart();
+            initContentSankeyChart();
+            
+            // 填充表格
+            fillStrategyTable();
+            
+            // 设置全屏功能
+            setupFullscreenButtons();
+            
+            // 响应式调整
+            window.addEventListener('resize', function() {
+                // 调整所有ECharts图表
+                echarts.getInstanceByDom(document.getElementById('brandBubbleChart'))?.resize();
+                echarts.getInstanceByDom(document.getElementById('contentSankeyChart'))?.resize();
+                
+                // 调整品牌饼图
+                Object.keys(brandData.contentDistribution).forEach(brand => {
+                    const chart = echarts.getInstanceByDom(document.getElementById(`pie-${brand}`));
+                    if (chart) chart.resize();
+                });
+            });
+        });
+    </script>
+</body>
+</html>
